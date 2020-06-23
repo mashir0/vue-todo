@@ -53,6 +53,11 @@
 </template>
 
 <script>
+import {db, firestore} from  "@/plugins/firebase"
+
+console.log(db)
+console.log(firestore)
+
 export default {
   name: "HelloWorld",
   data() {
@@ -62,20 +67,35 @@ export default {
       todos: []
     };
   },
+
+  firestore() {
+    console.log("todos:", db.collection('todos')) 
+    return {
+      todos: db.collection('todos')
+    }
+  },
+
   methods: {
+    // addTodo() {
+    //   this.todos.push({
+    //     title: this.title,
+    //     done: false,
+    //     edit: false
+    //   });
+    //   this.title = "";
+    //   this.content = "";
+    // },
     addTodo() {
-      this.todos.push({
+      db.collection('todos').add({
         title: this.title,
         done: false,
-        edit: false
-      });
+      })
       this.title = "";
-      this.content = "";
     },
 
     delTodo(index) {
       this.todos.splice(index, 1);
-    }
+    },
   }
 };
 </script>
