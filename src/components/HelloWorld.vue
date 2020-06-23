@@ -28,19 +28,34 @@
       <button @click="addTodo">追加</button>
 
       <div v-if="todos.length">
-        <ul v-for="(todo, index) in todos" :key="index">
+        <ul v-for="todo in todos" :key="todo.id">
           <li :class="{ done: todo.done }">
             <input
               v-if="edit == todo"
-              @keyup.enter="edit = null"
-              @keyup.esc="edit = null"
-              @blur="edit = null"
+              @keyup.enter="editTodo(todo)"
+              @keyup.esc="editTodo(todo)"
+              @blur="editTodo(todo)"
               v-model="todo.title"
             />
             <div v-else>
-              <input class="toggle" type="checkbox" v-model="todo.done" />
-              <label @dblclick="edit = todo">{{ todo.title }}</label>
-              <button @click="delTodo(index)">del</button>
+              <table>
+                <tr>
+                  <td width="10%">
+                    <input
+                      class="toggle"
+                      type="checkbox"
+                      v-model="todo.done"
+                      @change="editTodo(todo)"
+                    />
+                  </td>
+                  <td width="80%">
+                    <label @dblclick="edit = todo">{{ todo.title }}</label>
+                  </td>
+                  <td width="10%">
+                    <button @click="delTodo(todo)">del</button>
+                  </td>
+                </tr>
+              </table>
             </div>
           </li>
         </ul>
@@ -53,10 +68,7 @@
 </template>
 
 <script>
-import {db, firestore} from  "@/plugins/firebase"
-
-console.log(db)
-console.log(firestore)
+import { db } from "@/plugins/firebase";
 
 export default {
   name: "HelloWorld",
@@ -69,33 +81,35 @@ export default {
   },
 
   firestore() {
-    console.log("todos:", db.collection('todos')) 
     return {
-      todos: db.collection('todos')
-    }
+      todos: db.collection("todos").orderBy("createdAt", "desc")
+    };
   },
 
   methods: {
-    // addTodo() {
-    //   this.todos.push({
-    //     title: this.title,
-    //     done: false,
-    //     edit: false
-    //   });
-    //   this.title = "";
-    //   this.content = "";
-    // },
     addTodo() {
-      db.collection('todos').add({
+      const now = new Date();
+      db.collection("todos").add({
         title: this.title,
         done: false,
-      })
+        createdAt: now
+      });
       this.title = "";
     },
 
-    delTodo(index) {
-      this.todos.splice(index, 1);
+    delTodo(todo) {
+      // console.log("todo:" ,todo)
+      db.collection("todos")
+        .doc(todo.id)
+        .delete();
     },
+
+    editTodo(todo) {
+      this.edit = null;
+      db.collection("todos")
+        .doc(todo.id)
+        .set(todo);
+    }
   }
 };
 </script>
